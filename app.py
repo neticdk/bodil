@@ -13,8 +13,9 @@ from flask import jsonify
 app = Flask(__name__)
 
 my_ip = socket.gethostbyname(socket.gethostname())
-base_url = os.environ.get('BODIL_BASE_URL', 'http://{}:5000'.format(my_ip))
 bodil_port = int(os.environ.get('BODIL_PORT', 5000))
+base_url = os.environ.get('BODIL_BASE_URL', 'http://{}:{}'.format(my_ip,
+                                                                  bodil_port))
 
 
 def valid_mac(mac):
@@ -59,9 +60,8 @@ def get_cloud_config(mac):
     with open("machines/{}.json".format(mac), 'r') as infile:
         data = json.load(infile)
 
-    profile = data['profile']
-
-    return render_template('cloud-config-{}.yml'.format(profile), ip=data['ip'],
+    return render_template('cloud-config-{}.yml'.format(data['profile']),
+                           ip=data['ip'], gw=data['gw'], dns=data['dns'],
                            name=data['name'], sshkey=data['sshkey'],
                            etcd_token=data['etcd_token'])
 
