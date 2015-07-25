@@ -14,7 +14,7 @@ app = Flask(__name__)
 
 my_ip = socket.gethostbyname(socket.gethostname())
 base_url = os.environ.get('BODIL_BASE_URL', 'http://{}:5000'.format(my_ip))
-bodil_port = os.environ.get('BODIL_PORT', 5000)
+bodil_port = int(os.environ.get('BODIL_PORT', 5000))
 
 
 def valid_mac(mac):
