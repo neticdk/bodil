@@ -45,7 +45,7 @@ def get_cloud_config_script(mac):
     if not os.path.isfile("machines/{}.json".format(mac)):
         abort(404)
 
-    return render_template('install-smartos.sh', base_url=base_url, mac=mac)
+    return render_template('install-coreos.sh', base_url=base_url, mac=mac)
 
 
 @app.route('/cloud-config/<mac>', methods=['GET'])
