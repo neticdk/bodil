@@ -1,11 +1,14 @@
 #!/bin/bash
-curl -X PUT --data 'state=DEPLOYING' {{ base_url }}/machine/{{ mac }}
-curl {{ base_url }}/cloud-config/{{ mac }} > cloud-config.yaml
+BASE_URL="{{ base_url }}"
+MAC="{{ mac }}"
+
+curl -X PUT --data 'state=DEPLOYING' $BASE_URL/machine/$MAC
+curl $BASE_URL/cloud-config/$MAC > cloud-config.yaml
 sudo coreos-install -d /dev/sda -c cloud-config.yaml -C stable
 
 if [ $? -eq 0 ]; then
-    curl -X PUT --data 'state=DEPLOYED' {{ base_url }}/machine/{0}
-        sudo reboot
+    curl -X PUT --data 'state=DEPLOYED' $BASE_URL/machine/$MAC
+    sudo reboot
 else
-    curl -X PUT --data 'state=DEPLOY_FAILED' {{ base_url }}/machine/{0}
+    curl -X PUT --data 'state=DEPLOY_FAILED' $BASE_URL/machine/$MAC
 fi
