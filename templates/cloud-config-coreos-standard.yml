@@ -1,0 +1,59 @@
+#cloud-config
+
+hostname: {{ name }}
+
+coreos:
+{% if etcd_token %}
+  etcd2:
+    discovery: {{ etcd_token }}
+    advertise-client-urls: http://0.0.0.0:2379
+    initial-advertise-peer-urls: http://0.0.0.0:2380
+    listen-client-urls: http://0.0.0.0:2379,http://0.0.0.0:4001
+    listen-peer-urls: http://0.0.0.0:2380,http://0.0.0.0:7001
+{% endif %}
+  update:
+    reboot-strategy: etcd-lock
+  units:
+    - name: static.network
+      runtime: true
+      content: |
+        [Match]
+        Name=eno16*
+
+        [Network]
+        DHCP=no
+        Address={{ ip }}
+        Gateway={{ gw }}
+        DNS={{ dns }}
+    - name: etcd2.service
+      command: start
+    - name: fleet.service
+      command: start
+    - name: docker-tcp.socket
+      command: start
+      enable: yes
+      content: |
+        [Unit]
+        Description=Docker Socket for the API
+
+        [Socket]
+        ListenStream=127.0.0.1:2375
+        Service=docker.service
+        BindIPv6Only=both
+
+        [Install]
+        WantedBy=sockets.target
+    - name: enable-docker-tcp.service
+      command: start
+      content: |
+        [Unit]
+        Description=Enable the Docker Socket for the API
+
+        [Service]
+        Type=oneshot
+        ExecStart=/usr/bin/systemctl enable docker-tcp.socket
+
+{% if sshkey %}
+ssh_authorized_keys:
+  - {{ sshkey }}
+{% endif %}
