@@ -12,3 +12,4 @@ if [ $? -eq 0 ]; then
 else
     curl -X PUT --data 'state=DEPLOY_FAILED' $BASE_URL/machine/$MAC
 fi
+
