@@ -15,7 +15,7 @@ api = Api(app)
 BODIL_PORT = int(os.environ.get('BODIL_PORT', 5000))
 BODIL_DEFAULT_URL = 'http://{}:{}'.format(
     socket.gethostbyname(socket.gethostname()), BODIL_PORT)
-BODIL_DEBUG = os.environ.get('BODIL_DEBUG', True)
+BODIL_DEBUG = bool(os.environ.get('BODIL_DEBUG', False))
 BODIL_URL = os.environ.get('BODIL_BASE_URL', BODIL_DEFAULT_URL)
 
 
