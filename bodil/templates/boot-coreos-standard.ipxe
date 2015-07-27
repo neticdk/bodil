@@ -1,0 +1,5 @@
+#!ipxe
+set base-url {{ base_url }}
+kernel ${base-url}/static/images/coreos/stable/current/coreos_production_pxe.vmlinuz cloud-config-url=${base-url}/api/v1/cloud-config-script/${net0/mac}
+initrd ${base-url}/static/images/coreos/stable/current/coreos_production_pxe_image.cpio.gz
+boot
