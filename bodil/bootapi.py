@@ -12,6 +12,8 @@ class BootAPI(Resource):
         machine = get_machine(mac)
 
         template = 'boot-{}.ipxe'.format(machine.profile)
-        res = plaintext_response(render_template(template,
-                                                 base_url=bodil.BODIL_URL))
+        res = plaintext_response(render_template(
+            template, base_url=bodil.BODIL_URL,
+            coreos_channel=machine.coreos_channel,
+            coreos_version=machine.coreos_version))
         return res

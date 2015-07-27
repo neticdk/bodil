@@ -25,6 +25,8 @@ class Machine(object):
         self.dns = kwargs.pop('dns', None)
         self.sshkey = kwargs.pop('sshkey', None)
         self.etcd_token = kwargs.pop('etcd_token', None)
+        self.coreos_channel = kwargs.pop('coreos_channel', None)
+        self.coreos_version = kwargs.pop('coreos_version', None)
         self.state = kwargs.pop('state', None)
 
     def load(self):
@@ -38,6 +40,8 @@ class Machine(object):
                 self.dns = data.get('dns')
                 self.sshkey = data.get('sshkey', None)
                 self.etcd_token = data.get('etcd_token', None)
+                self.coreos_channel = data.get('coreos_channel', None)
+                self.coreos_version = data.get('coreos_version', None)
                 self.state = data.get('state', None)
         except IOError as e:
             if e.errno == errno.ENOENT:
@@ -61,6 +65,8 @@ class Machine(object):
                     'dns': self.dns,
                     'sshkey': self.sshkey,
                     'etcd_token': self.etcd_token,
+                    'coreos_channel': self.coreos_channel,
+                    'coreos_version': self.coreos_version,
                     'state': self.state
                 }
                 json.dump(data, outfile)

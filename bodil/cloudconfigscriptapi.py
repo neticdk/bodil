@@ -9,10 +9,11 @@ from .util import abort_if_invalid_mac_address, plaintext_response
 class CloudConfigScriptAPI(Resource):
     def get(self, mac):
         abort_if_invalid_mac_address(mac)
-        get_machine(mac)
+        machine = get_machine(mac)
 
         template = 'install-coreos.sh'
-        res = plaintext_response(render_template(template,
-                                                 base_url=bodil.BODIL_URL,
-                                                 mac=mac))
+        res = plaintext_response(render_template(
+            template, base_url=bodil.BODIL_URL, mac=mac,
+            coreos_channel=machine.coreos_channel,
+            coreos_version=machine.coreos_version))
         return res
