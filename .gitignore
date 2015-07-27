@@ -61,3 +61,4 @@ bin/
 include/
 pip-selfcheck.json
 machines/
+bodil/static/

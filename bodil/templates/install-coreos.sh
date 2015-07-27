@@ -6,7 +6,7 @@ MAC="{{ mac }}"
 update_state() {
   curl -H 'Content-Type: application/json' \
        -X PUT \
-       --data "state=$1" \
+       --data "{\"state\": \"$1\"}" \
        $API_URL/machine/$MAC
 }
 
