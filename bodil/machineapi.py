@@ -76,7 +76,6 @@ class MachineAPI(Resource):
     def get(self, mac):
         abort_if_invalid_mac_address(mac)
         machine = get_machine(mac)
-
         return machine
 
     @marshal_with(machine_fields)
@@ -97,8 +96,5 @@ class MachineAPI(Resource):
     def delete(self, mac):
         abort_if_invalid_mac_address(mac)
         machine = get_machine(mac)
-
         machine.destroy()
-
         return '', 204
-
