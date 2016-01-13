@@ -27,7 +27,8 @@ machine_fields = {
     'coreos_channel': fields.String,
     'coreos_version': fields.String,
     'sshkey': fields.String,
-    'state': fields.String
+    'state': fields.String,
+    '_hack': fields.String
 }
 
 
@@ -51,7 +52,7 @@ class MachinesAPI(Resource):
 
     @marshal_with(machine_fields)
     def post(self):
-        args = self.reqparse.parse_args(strict=True)
+        args = self.reqparse.parse_args(strict=False)
         abort_if_invalid_mac_address(args['mac'])
         machine = Machine(**args)
         if machine.exists():
@@ -63,7 +64,6 @@ class MachinesAPI(Resource):
             abort(400, message=str(e))
 
         return machine, 201
-
 
 class MachineAPI(Resource):
     def __init__(self):
@@ -82,7 +82,7 @@ class MachineAPI(Resource):
     @marshal_with(machine_fields)
     def put(self, mac):
         abort_if_invalid_mac_address(mac)
-        args = self.reqparse.parse_args(strict=True)
+        args = self.reqparse.parse_args(strict=False)
         machine = get_machine(mac)
         for k, v in args.items():
             if v != getattr(machine, k):

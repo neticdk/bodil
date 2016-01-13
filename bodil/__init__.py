@@ -8,6 +8,7 @@ from .bootapi import BootAPI
 from .cloudconfigscriptapi import CloudConfigScriptAPI
 from .cloudconfigapi import CloudConfigAPI
 from .machineapi import MachineAPI, MachinesAPI
+from .kickstartapi import KickstartAPI
 
 app = Flask(__name__)
 api = Api(app)
@@ -28,3 +29,5 @@ api.add_resource(CloudConfigScriptAPI,
 api.add_resource(CloudConfigAPI, '/api/v1/cloud-config/<string:mac>')
 api.add_resource(MachineAPI, '/api/v1/machine/<string:mac>', endpoint='machine')
 api.add_resource(MachinesAPI, '/api/v1/machine')
+
+api.add_resource(KickstartAPI, '/api/v1/kickstart/<string:mac>')

@@ -1,0 +1,5 @@
+#!ipxe
+set base-url {{ base_url }}
+kernel ${base-url}/static/images/ol7/vmlinuz ks={{ base_url }}/api/v1/kickstart/${net0/mac} stage2={{ base_url }}/static/images/ol7 kssendmac inst.cmdline
+initrd ${base-url}/static/images/ol7/initrd.img
+boot

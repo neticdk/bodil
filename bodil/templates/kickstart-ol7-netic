@@ -1,0 +1,93 @@
+install
+url --url="http://public-yum.oracle.com/repo/OracleLinux/OL7/latest/x86_64/"
+lang en_US.UTF-8
+keyboard dk
+network --activate --onboot yes --device link --bootproto dhcp --noipv6 --hostname {{ name }}
+rootpw manager
+authconfig --enableshadow --passalgo=sha512
+selinux --enforcing
+timezone --utc Europe/Copenhagen
+services --enabled network,sshd
+bootloader --location=mbr --boot-drive=sda --append="selinux=1 audit=1"
+cmdline
+skipx
+
+# Partitioning
+zerombr
+clearpart --all --initlabel
+part /boot --fstype ext3 --size=500 --ondisk=sda
+part pv.01 --size=2048 --grow --ondisk=sda
+part pv.02 --size=500 --grow --ondisk=sdb
+volgroup rootdisk pv.01
+volgroup vg00 pv.02
+logvol swap --name=swap --vgname=rootdisk --fstype=swap --size=1024
+logvol /var --name=var --vgname=rootdisk --fstype=ext3 --size=3584
+logvol / --name=root --vgname=rootdisk  --fstype=ext3  --size=1024 --grow
+logvol /pack --name=pack --vgname=vg00 --fstype=ext3 --size=500 --grow
+
+
+firstboot --disabled
+firewall --disabled
+reboot
+
+%packages
+@core
+open-vm-tools
+
+# Useful sysadm tools
+screen
+unzip
+bzip2
+bind-utils
+lsof
+net-tools
+telnet
+nmap-ncat
+rsync
+
+# Debugging tools
+strace
+dstat
+iotop
+tcpdump
+
+# No soundcard
+-alsa-*
+# No Adaptec sequencer...
+-aic94xx-firmware*
+# No Intel WIFI
+-iwl*firmware
+# No Marvell Network Adapter
+-libertas*
+# No Hauppauge PVR
+-ivtv*
+# No weird IBM storage
+-iprutils
+# We control network config
+-NetworkManager*
+# No WIFI
+-wpa_supplicant
+# No splash screen
+-plymouth*
+# No RHN
+-rhnsd
+# No local firewall
+-firewalld
+# Udev helper for naming devices per BIOS names
+-biosdevname
+# Not using brtfs
+-btrfs-progs*
+# Not using maridb
+-mariadb-libs
+%end
+
+%post --log=/root/ks-post.log
+# Add a deployment user which must be deleted after deployment
+# Set to expire tomorrow to be on the safe side
+SECRET='$6$pslNmDKw8zGizCez$3C0jg5YeRZY5baFXER.Xb9PWS2yO/8VG4dpcS3rRuLV8xlKIkRxIaQEkGvgzUG/5WeZgL2F0Lf0iQOWgBWEhO.'
+useradd -c "Deployment user" -m -s /bin/bash -p deploy -e `date +"%Y-%m-%d" --date tomorrow` -p "$SECRET" deploy
+
+# Make deploy user allmighty during deployment
+echo 'deploy ALL=(ALL) NOPASSWD: ALL' >> /etc/sudoers
+
+%end
