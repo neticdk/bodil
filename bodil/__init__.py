@@ -19,6 +19,7 @@ BODIL_DEFAULT_URL = 'http://{}:{}'.format(
 BODIL_DEBUG = bool(os.environ.get('BODIL_DEBUG', False))
 BODIL_URL = os.environ.get('BODIL_BASE_URL', BODIL_DEFAULT_URL)
 
+app.debug = BODIL_DEBUG
 
 # TODO: support create, delete, update
 api.add_resource(BootAPI, '/api/v1/boot/<string:mac>')

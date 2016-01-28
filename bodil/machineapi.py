@@ -6,8 +6,8 @@ from .util import abort_if_invalid_mac_address
 from .machine import get_machine
 from .machine import Machine, Machines, MissingMachineField
 
-required_fields = ['mac', 'name', 'profile', 'ip', 'gw', 'dns']
-optional_fields = ['etcd_token', 'sshkey']
+required_fields = ['mac', 'name', 'profile']
+optional_fields = ['ip', 'gw', 'dns', 'etcd_token', 'sshkey', 'repo_url']
 other_fields = ['coreos_channel', 'coreos_version', 'state']
 all_fields = required_fields+optional_fields+other_fields
 
@@ -28,7 +28,7 @@ machine_fields = {
     'coreos_version': fields.String,
     'sshkey': fields.String,
     'state': fields.String,
-    '_hack': fields.String
+    'repo_url': fields.String
 }
 
 
@@ -52,7 +52,7 @@ class MachinesAPI(Resource):
 
     @marshal_with(machine_fields)
     def post(self):
-        args = self.reqparse.parse_args(strict=False)
+        args = self.reqparse.parse_args(strict=True)
         abort_if_invalid_mac_address(args['mac'])
         machine = Machine(**args)
         if machine.exists():
@@ -82,7 +82,7 @@ class MachineAPI(Resource):
     @marshal_with(machine_fields)
     def put(self, mac):
         abort_if_invalid_mac_address(mac)
-        args = self.reqparse.parse_args(strict=False)
+        args = self.reqparse.parse_args(strict=True)
         machine = get_machine(mac)
         for k, v in args.items():
             if v != getattr(machine, k):
