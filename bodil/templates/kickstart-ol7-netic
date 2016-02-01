@@ -51,6 +51,8 @@ rsync
 policycoreutils-python
 sysstat
 vim
+krb5-workstation
+keyutils
 
 # Debugging tools
 strace
