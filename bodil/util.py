@@ -39,3 +39,22 @@ def abort_if_invalid_mac_address(mac):
     """
     if not is_valid_mac_address(mac):
         abort(400, message="Invalid MAC address: {}".format(mac))
+
+def bits_to_quads(mask):
+    """Converts cidr bits (24) to dotted quads (255.255.255.0).
+
+    Args:
+        mask (int): cidr bits
+
+    Returns:
+        str: Dotted quads
+
+    Examples:
+        >>> bits_to_quads(24)
+        "255.255.255.0"
+    """
+    bits = 0
+    for i in xrange(32-mask,32):
+        bits |= (1 << i)
+    return "%d.%d.%d.%d" % ((bits & 0xff000000) >> 24, (bits & 0xff0000) >> 16, (bits & 0xff00) >> 8 , (bits & 0xff))
+

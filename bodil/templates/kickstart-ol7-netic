@@ -29,14 +29,14 @@ part pv.02 --size=500 --grow --ondisk=sdb
 volgroup vg00 pv.02
 logvol /pack --name=pack --vgname=vg00 --fstype=ext3 --size=500 --grow
 
-
 firstboot --disabled
 firewall --disabled
-reboot
+poweroff
 
 %packages
 @core
 open-vm-tools
+kernel-uek
 
 # Useful sysadm tools
 screen
@@ -123,5 +123,59 @@ grep " \/var\/tmp " ${FSTAB} >/dev/null
 if [ $? -eq 1 ]; then
         echo -e "/tmp\t\t/var/tmp\t\t\text3\tdefaults,bind,nodev,noexec,nosuid\t0 0" >> ${FSTAB}
 fi
+
+# enable base repos
+cat > /etc/yum.repos.d/netic.repo <<REPOS
+[netic_ol7]
+priority=10
+cost=10
+name=Netic OL7 local mirror
+gpgcheck=1
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-oracle
+enabled=1
+baseurl={{ repo_url }}
+REPOS
+
+
+# configure network if specified
+{% if ip_addr %}
+
+BOOTIF=`ip addr | grep -i broadcast | awk '{ print $2 }'|sed 's/://g'`
+NETCFGFILE="/etc/sysconfig/network-scripts/ifcfg-${BOOTIF}"
+IFUUID=`uuidgen`
+
+cat > ${NETCFGFILE} <<NETWORKCONF
+TYPE="Ethernet"
+BOOTPROTO="none"
+DEFROUTE="yes"
+IPV4_FAILURE_FATAL="no"
+IPV6INIT="yes"
+IPV6_AUTOCONF="yes"
+IPV6_DEFROUTE="yes"
+IPV6_FAILURE_FATAL="no"
+NAME="$BOOTIF"
+UUID="$IFUUID"
+DEVICE="$BOOTIF"
+ONBOOT="yes"
+IPADDR="{{ ip_addr }}"
+PREFIX="{{ ip_mask }}"
+GATEWAY="{{ ip_gw }}"
+DOMAIN="{{ ip_domain }}"
+IPV6_PEERDNS="yes"
+IPV6_PEERROUTES="yes"
+IPV6_PRIVACY="no"
+NETWORKCONF
+
+{% for ns in ip_dns %}echo DNS=\"{{ ns }}\" >> $BOOTIF
+{% endfor %}
+{% endif %}
+
+# Tell bodil we are done
+curl -H 'Content-Type: application/json' -D - -d '{"state":"KICKSTART_DONE"}' -X PUT {{ base_url }}/api/v1/machine/{{ mac }}
+
+# Release DHCP lease if configured with static ip
+{% if ip_addr %}
+dhclient -v -r
+{% endif %}
 
 %end

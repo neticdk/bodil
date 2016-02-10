@@ -10,14 +10,16 @@ from .cloudconfigapi import CloudConfigAPI
 from .machineapi import MachineAPI, MachinesAPI
 from .kickstartapi import KickstartAPI
 
-app = Flask(__name__)
-api = Api(app)
 
 BODIL_PORT = int(os.environ.get('BODIL_PORT', 5000))
 BODIL_DEFAULT_URL = 'http://{}:{}'.format(
     socket.gethostbyname(socket.gethostname()), BODIL_PORT)
 BODIL_DEBUG = bool(os.environ.get('BODIL_DEBUG', False))
 BODIL_URL = os.environ.get('BODIL_BASE_URL', BODIL_DEFAULT_URL)
+BODIL_TEMPLATE_FOLDER = os.environ.get('BODIL_TEMPLATE_FOLDER', 'templates')
+
+app = Flask(__name__, template_folder=BODIL_TEMPLATE_FOLDER)
+api = Api(app)
 
 app.debug = BODIL_DEBUG
 
