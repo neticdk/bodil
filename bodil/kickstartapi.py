@@ -13,13 +13,31 @@ class KickstartAPI(Resource):
         machine = get_machine(mac)
 
         template = 'kickstart-{}'.format(machine.profile)
-        ip, ip_mask = getattr(machine, 'ip', '/32').split('/')
-        netmask = bits_to_quads(int(ip_mask))
-        nameservers = getattr(machine, 'dns', '').split(',')
-        domainname = machine.name.partition('.')[2]
+
+        ip_addr = None
+        ip_prefix = None
+        ip_netmask = None
+        ip_gw = getattr(machine, 'gw', None)
+        if ip_gw == '':
+          ip_gw = None
+
+        ip_cidr = getattr(machine, 'ip', None)
+        if ip_cidr != '' and ip_cidr is not None:
+            ip_addr, ip_prefix = (ip_cidr.split('/') + [None])[:2]
+            ip_netmask = bits_to_quads(int(ip_prefix))
+
+        ip_dns = getattr(machine, 'dns', '').split(',')
+        ip_domain = machine.name.partition('.')[2]
+
         res = plaintext_response(render_template(
-            template, base_url=bodil.BODIL_URL, name=machine.name,
-	    ip_addr=ip, ip_mask=ip_mask, ip_netmask=netmask, ip_gw=machine.gw,
-	    ip_dns=nameservers, ip_domain=domainname,
+            template,
+            name=machine.name,
+            base_url=bodil.BODIL_URL,
+	    ip_addr=ip_addr,
+            ip_prefix=ip_prefix,
+            ip_netmask=ip_netmask,
+            ip_gw=ip_gw,
+	    ip_dns=ip_dns,
+            ip_domain=ip_domain,
             repo_url=machine.repo_url, mac=mac))
         return res
