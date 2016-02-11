@@ -26,7 +26,10 @@ class KickstartAPI(Resource):
             ip_addr, ip_prefix = (ip_cidr.split('/') + [None])[:2]
             ip_netmask = bits_to_quads(int(ip_prefix))
 
-        ip_dns = getattr(machine, 'dns', '').split(',')
+        dns = getattr(machine, 'dns', '')
+        if dns is None:
+            dns = ''
+        ip_dns = dns.split(',')
         ip_domain = machine.name.partition('.')[2]
 
         res = plaintext_response(render_template(
@@ -39,5 +42,7 @@ class KickstartAPI(Resource):
             ip_gw=ip_gw,
 	    ip_dns=ip_dns,
             ip_domain=ip_domain,
-            repo_url=machine.repo_url, mac=mac))
+            repo_url=machine.repo_url,
+            meta=machine.meta,
+            mac=mac))
         return res
