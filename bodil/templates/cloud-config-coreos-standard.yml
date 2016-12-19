@@ -14,21 +14,21 @@ coreos:
   update:
     reboot-strategy: etcd-lock
   units:
-    - name: static.network
+    - name: 00-ens32.network
       runtime: true
       content: |
         [Match]
-        Name=eno16*
+        Name=ens32*
 
         [Network]
         DHCP=no
-        Address={{ ip }}
+        Address={{ ip }}/24
         Gateway={{ gw }}
         DNS={{ dns }}
     - name: etcd2.service
       command: start
-    - name: fleet.service
-      command: start
+#    - name: fleet.service
+#      command: start
     - name: docker-tcp.socket
       command: start
       enable: yes

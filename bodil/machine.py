@@ -28,6 +28,7 @@ class Machine(object):
         self.coreos_channel = kwargs.pop('coreos_channel', None)
         self.coreos_version = kwargs.pop('coreos_version', None)
         self.state = kwargs.pop('state', None)
+        self.repo_url = kwargs.pop('repo_url', None)
 
     def load(self):
         try:
@@ -43,6 +44,7 @@ class Machine(object):
                 self.coreos_channel = data.get('coreos_channel', None)
                 self.coreos_version = data.get('coreos_version', None)
                 self.state = data.get('state', None)
+                self.repo_url = data.get('repo_url', None)
         except IOError as e:
             if e.errno == errno.ENOENT:
                 raise MachineNotFound
@@ -67,7 +69,8 @@ class Machine(object):
                     'etcd_token': self.etcd_token,
                     'coreos_channel': self.coreos_channel,
                     'coreos_version': self.coreos_version,
-                    'state': self.state
+                    'state': self.state,
+                    'repo_url': self.repo_url
                 }
                 json.dump(data, outfile)
         except IOError as e:

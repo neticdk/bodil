@@ -1,5 +1,6 @@
 install
-url --url="http://public-yum.oracle.com/repo/OracleLinux/OL7/latest/x86_64/"
+url --url="{{ repo_url }}"
+#http://172.28.5.231/yum/"
 lang en_US.UTF-8
 keyboard dk
 network --activate --onboot yes --device link --bootproto dhcp --noipv6 --hostname {{ name }}

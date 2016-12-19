@@ -13,5 +13,6 @@ class KickstartAPI(Resource):
 
         template = 'kickstart-{}'.format(machine.profile)
         res = plaintext_response(render_template(
-            template, base_url=bodil.BODIL_URL, name=machine.name, mac=mac))
+            template, base_url=bodil.BODIL_URL, name=machine.name,
+            repo_url=machine.repo_url, mac=mac))
         return res

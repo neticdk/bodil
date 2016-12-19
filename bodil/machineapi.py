@@ -7,8 +7,8 @@ from .machine import get_machine
 from .machine import Machine, Machines, MissingMachineField
 
 required_fields = ['mac', 'name', 'profile', 'ip', 'gw', 'dns']
-optional_fields = ['etcd_token', 'sshkey']
-other_fields = ['coreos_channel', 'coreos_version', 'state']
+optional_fields = ['etcd_token', 'sshkey', 'repo_url']
+other_fields = ['coreos_channel', 'coreos_version', 'state', '_hack']
 all_fields = required_fields+optional_fields+other_fields
 
 machines_fields = {
@@ -28,6 +28,7 @@ machine_fields = {
     'coreos_version': fields.String,
     'sshkey': fields.String,
     'state': fields.String,
+    'repo_url': fields.String,
     '_hack': fields.String
 }
 
@@ -44,6 +45,7 @@ class MachinesAPI(Resource):
                                    default='current')
         self.reqparse.add_argument('state', type=str,
                                    default='READY-FOR-DEPLOYMENT')
+        self.reqparse.add_argument('_hack', type=str, default='')
         super(MachinesAPI, self).__init__()
 
     @marshal_with(machines_fields)
@@ -52,7 +54,7 @@ class MachinesAPI(Resource):
 
     @marshal_with(machine_fields)
     def post(self):
-        args = self.reqparse.parse_args(strict=False)
+        args = self.reqparse.parse_args(strict=True)
         abort_if_invalid_mac_address(args['mac'])
         machine = Machine(**args)
         if machine.exists():
@@ -82,9 +84,11 @@ class MachineAPI(Resource):
     @marshal_with(machine_fields)
     def put(self, mac):
         abort_if_invalid_mac_address(mac)
-        args = self.reqparse.parse_args(strict=False)
+        args = self.reqparse.parse_args(strict=True)
         machine = get_machine(mac)
         for k, v in args.items():
+            if k == '_hack':
+                continue
             if v != getattr(machine, k):
                 setattr(machine, k, v)
         try:

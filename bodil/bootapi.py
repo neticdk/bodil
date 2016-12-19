@@ -14,6 +14,7 @@ class BootAPI(Resource):
         template = 'boot-{}.ipxe'.format(machine.profile)
         res = plaintext_response(render_template(
             template, base_url=bodil.BODIL_URL,
+            repo_url=machine.repo_url,
             coreos_channel=machine.coreos_channel,
             coreos_version=machine.coreos_version))
         return res

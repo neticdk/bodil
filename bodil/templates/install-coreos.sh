@@ -15,7 +15,7 @@ update_state() {
 update_state DEPLOYING
 
 curl $API_URL/cloud-config/$MAC > cloud-config.yaml
-sudo coreos-install -d /dev/sda -c cloud-config.yaml -C stable -b $BASE_URL/static/images/coreos/$COREOS_CHANNEL -V $COREOS_VERSION -C $COREOS_CHANNEL
+sudo coreos-install -d /dev/sda -c cloud-config.yaml -b $BASE_URL/static/images/coreos/$COREOS_CHANNEL -V $COREOS_VERSION -C $COREOS_CHANNEL
 
 if [ $? -eq 0 ]; then
     update_state DEPLOYED
