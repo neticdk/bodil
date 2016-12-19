@@ -35,7 +35,7 @@ machine_fields = {
     'sshkey': fields.String,
     'state': fields.String,
     'repo_url': fields.String,
-    '_hack': fields.String
+    '_hack': fields.String,
     'meta': fields.Nested(meta_fields)
 }
 
