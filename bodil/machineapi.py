@@ -8,8 +8,14 @@ from .machine import Machine, Machines, MissingMachineField
 
 required_fields = ['mac', 'name', 'profile', 'ip', 'gw', 'dns']
 optional_fields = ['etcd_token', 'sshkey', 'repo_url']
-other_fields = ['coreos_channel', 'coreos_version', 'state', '_hack']
+other_fields = ['coreos_channel', 'coreos_version', 'state', '_hack', 'meta']
 all_fields = required_fields+optional_fields+other_fields
+
+meta_fields = {
+    'git_ref': fields.String,
+    'deployed_by': fields.String,
+    'deployed_time': fields.Integer
+}
 
 machines_fields = {
     'mac': fields.String,
@@ -30,6 +36,7 @@ machine_fields = {
     'state': fields.String,
     'repo_url': fields.String,
     '_hack': fields.String
+    'meta': fields.Nested(meta_fields)
 }
 
 
@@ -46,6 +53,7 @@ class MachinesAPI(Resource):
         self.reqparse.add_argument('state', type=str,
                                    default='READY-FOR-DEPLOYMENT')
         self.reqparse.add_argument('_hack', type=str, default='')
+        self.reqparse.add_argument('meta', type=dict, default={})
         super(MachinesAPI, self).__init__()
 
     @marshal_with(machines_fields)
@@ -70,15 +78,22 @@ class MachinesAPI(Resource):
 class MachineAPI(Resource):
     def __init__(self):
         self.reqparse = reqparse.RequestParser()
-        for f in all_fields:
+        for f in required_fields:
             self.reqparse.add_argument(f, type=str, store_missing=False)
+        for f in optional_fields:
+            self.reqparse.add_argument(f, type=str, store_missing=False)
+        self.reqparse.add_argument('coreos_channel', type=str, store_missing=False)
+        self.reqparse.add_argument('coreos_version', type=str, store_missing=False)
+        self.reqparse.add_argument('state', type=str, store_missing=False)
+        self.reqparse.add_argument('meta', type=dict, store_missing=False)
+        #for f in all_fields:
+        #    self.reqparse.add_argument(f, type=str, store_missing=False)
         super(MachineAPI, self).__init__()
 
     @marshal_with(machine_fields)
     def get(self, mac):
         abort_if_invalid_mac_address(mac)
         machine = get_machine(mac)
-
         return machine
 
     @marshal_with(machine_fields)
@@ -91,6 +106,8 @@ class MachineAPI(Resource):
                 continue
             if v != getattr(machine, k):
                 setattr(machine, k, v)
+            elif isinstance(v, dict):
+                setattr(machine, k, v)
         try:
             machine.save()
         except MissingMachineField as e:
@@ -101,8 +118,5 @@ class MachineAPI(Resource):
     def delete(self, mac):
         abort_if_invalid_mac_address(mac)
         machine = get_machine(mac)
-
         machine.destroy()
-
         return '', 204
-

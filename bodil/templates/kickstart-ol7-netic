@@ -1,6 +1,5 @@
 install
 url --url="{{ repo_url }}"
-#http://172.28.5.231/yum/"
 lang en_US.UTF-8
 keyboard dk
 network --activate --onboot yes --device link --bootproto dhcp --noipv6 --hostname {{ name }}
@@ -16,24 +15,28 @@ skipx
 # Partitioning
 zerombr
 clearpart --all --initlabel
-part /boot --fstype ext3 --size=500 --ondisk=sda
+part /boot --fstype ext3 --size=512 --ondisk=sda
 part pv.01 --size=2048 --grow --ondisk=sda
-part pv.02 --size=500 --grow --ondisk=sdb
 volgroup rootdisk pv.01
-volgroup vg00 pv.02
 logvol swap --name=swap --vgname=rootdisk --fstype=swap --size=1024
 logvol /var --name=var --vgname=rootdisk --fstype=ext3 --size=3584
+logvol /tmp --name=tmp --vgname=rootdisk --fstype=ext3 --size=1024 --fsoptions="nodev,noexec,nosuid"
+logvol /home --name=home --vgname=rootdisk --fstype=ext3 --size=1024 --fsoptions="nodev"
 logvol / --name=root --vgname=rootdisk  --fstype=ext3  --size=1024 --grow
-logvol /pack --name=pack --vgname=vg00 --fstype=ext3 --size=500 --grow
 
+# /pack
+part pv.02 --size=500 --grow --ondisk=sdb
+volgroup vg00 pv.02
+logvol /pack --name=pack --vgname=vg00 --fstype=ext3 --size=500 --grow
 
 firstboot --disabled
 firewall --disabled
-reboot
+poweroff
 
 %packages
 @core
 open-vm-tools
+kernel-uek
 
 # Useful sysadm tools
 screen
@@ -45,12 +48,21 @@ net-tools
 telnet
 nmap-ncat
 rsync
+policycoreutils-python
+sysstat
+vim
+krb5-workstation
+keyutils
 
 # Debugging tools
 strace
 dstat
 iotop
 tcpdump
+
+# Needed for compatibility
+glibc.i686
+compat-libstdc++-33
 
 # No soundcard
 -alsa-*
@@ -83,6 +95,10 @@ tcpdump
 %end
 
 %post --log=/root/ks-post.log
+
+# disable rhnsd
+chkconfig rhnsd off
+
 # Add a deployment user which must be deleted after deployment
 # Set to expire tomorrow to be on the safe side
 SECRET='$6$pslNmDKw8zGizCez$3C0jg5YeRZY5baFXER.Xb9PWS2yO/8VG4dpcS3rRuLV8xlKIkRxIaQEkGvgzUG/5WeZgL2F0Lf0iQOWgBWEhO.'
@@ -90,5 +106,76 @@ useradd -c "Deployment user" -m -s /bin/bash -p deploy -e `date +"%Y-%m-%d" --da
 
 # Make deploy user allmighty during deployment
 echo 'deploy ALL=(ALL) NOPASSWD: ALL' >> /etc/sudoers
+
+# Disable requiretty in sudoers (required for ansible)
+sed -i 's/Defaults.*requiretty/#Defaults requiretty/g' /etc/sudoers
+
+FSTAB=/etc/fstab
+# nodev, noexec, and nosuid on /dev/shm
+TEST="`grep ' \/dev\/shm ' ${FSTAB} | grep -c 'noexec'`"
+if [ "$TEST" = "0" ]; then
+        MNT_OPTS=$(grep " \/dev\/shm " ${FSTAB} | awk '{print $4}')
+        sed -i "s/\( \/dev\/shm.*${MNT_OPTS}\)/\1,nodev,noexec,nosuid/" ${FSTAB}
+fi
+
+# bindmount /var/tmp to /tmp
+grep " \/var\/tmp " ${FSTAB} >/dev/null
+if [ $? -eq 1 ]; then
+        echo -e "/tmp\t\t/var/tmp\t\t\text3\tdefaults,bind,nodev,noexec,nosuid\t0 0" >> ${FSTAB}
+fi
+
+# enable base repos
+cat > /etc/yum.repos.d/netic.repo <<REPOS
+[netic_ol7]
+priority=10
+cost=10
+name=Netic OL7 local mirror
+gpgcheck=1
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-oracle
+enabled=1
+baseurl={{ repo_url }}
+REPOS
+
+
+# configure network if specified
+{% if ip_addr %}
+
+BOOTIF=`ip addr | grep -i broadcast | awk '{ print $2 }'|sed 's/://g'`
+NETCFGFILE="/etc/sysconfig/network-scripts/ifcfg-${BOOTIF}"
+IFUUID=`uuidgen`
+
+cat > ${NETCFGFILE} <<NETWORKCONF
+TYPE="Ethernet"
+BOOTPROTO="none"
+DEFROUTE="yes"
+IPV4_FAILURE_FATAL="no"
+IPV6INIT="yes"
+IPV6_AUTOCONF="yes"
+IPV6_DEFROUTE="yes"
+IPV6_FAILURE_FATAL="no"
+NAME="$BOOTIF"
+UUID="$IFUUID"
+DEVICE="$BOOTIF"
+ONBOOT="yes"
+IPADDR="{{ ip_addr }}"
+PREFIX="{{ ip_mask }}"
+GATEWAY="{{ ip_gw }}"
+DOMAIN="{{ ip_domain }}"
+IPV6_PEERDNS="yes"
+IPV6_PEERROUTES="yes"
+IPV6_PRIVACY="no"
+NETWORKCONF
+
+{% for ns in ip_dns %}echo DNS=\"{{ ns }}\" >> $BOOTIF
+{% endfor %}
+{% endif %}
+
+# Tell bodil we are done
+curl -H 'Content-Type: application/json' -D - -d '{"state":"KICKSTART_DONE"}' -X PUT {{ base_url }}/api/v1/machine/{{ mac }}
+
+# Release DHCP lease if configured with static ip
+{% if ip_addr %}
+dhclient -v -r
+{% endif %}
 
 %end

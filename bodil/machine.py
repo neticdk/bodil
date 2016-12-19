@@ -29,6 +29,7 @@ class Machine(object):
         self.coreos_version = kwargs.pop('coreos_version', None)
         self.state = kwargs.pop('state', None)
         self.repo_url = kwargs.pop('repo_url', None)
+        self.meta = kwargs.pop('meta', {})
 
     def load(self):
         try:
@@ -36,22 +37,24 @@ class Machine(object):
                 data = json.load(infile)
                 self.name = data.get('name')
                 self.profile = data.get('profile')
-                self.ip = data.get('ip')
-                self.gw = data.get('gw')
-                self.dns = data.get('dns')
+                self.ip = data.get('ip', None)
+                self.gw = data.get('gw', None)
+                self.dns = data.get('dns', None)
                 self.sshkey = data.get('sshkey', None)
                 self.etcd_token = data.get('etcd_token', None)
                 self.coreos_channel = data.get('coreos_channel', None)
                 self.coreos_version = data.get('coreos_version', None)
                 self.state = data.get('state', None)
                 self.repo_url = data.get('repo_url', None)
+                self.meta = data.get('meta', {})
         except IOError as e:
             if e.errno == errno.ENOENT:
                 raise MachineNotFound
             raise
 
     def validate(self):
-        for f in ['name', 'profile', 'ip', 'gw', 'dns', 'state']:
+        for f in ['name', 'profile']:
+            # , 'ip', 'gw', 'dns', 'state']:
             if getattr(self, f) is None:
                 raise MissingMachineField("{} must not be null".format(f))
 
@@ -70,7 +73,8 @@ class Machine(object):
                     'coreos_channel': self.coreos_channel,
                     'coreos_version': self.coreos_version,
                     'state': self.state,
-                    'repo_url': self.repo_url
+                    'repo_url': self.repo_url,
+                    'meta': self.meta
                 }
                 json.dump(data, outfile)
         except IOError as e:
