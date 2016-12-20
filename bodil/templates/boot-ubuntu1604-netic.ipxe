@@ -1,0 +1,6 @@
+#!ipxe
+set base-url {{ base_url }}
+set repo-url {{ repo_url }}
+kernel ${base-url}/static/ubuntu1604/ubuntu-installer/amd64/linux preseed/url=${base-url}/api/v1/preseed/${net0/mac} debian-installer=en_US auto locale=en_US kbd-chooser/method=us hostname={{ hostname }} domain={{ domain }} fb=false debconf/frontend=noninteractive keyboard-configuration/modelcode=SKIP keyboard-configuration/layout=USA keyboard-configuration/variant=USA console-setup/ask_detect=false netcfg/disable_autoconfig boolean=true netcfg/use_autoconfig boolean=true
+initrd ${base-url}/static/ubuntu1604/ubuntu-installer/amd64/initrd.gz
+boot

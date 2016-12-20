@@ -15,6 +15,8 @@ class BootAPI(Resource):
         res = plaintext_response(render_template(
             template, base_url=bodil.BODIL_URL,
             repo_url=machine.repo_url,
+            hostname=machine.name,
+            domain=machine.name.partition('.')[2],
             coreos_channel=machine.coreos_channel,
             coreos_version=machine.coreos_version))
         return res

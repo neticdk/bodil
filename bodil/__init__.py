@@ -9,6 +9,7 @@ from .cloudconfigscriptapi import CloudConfigScriptAPI
 from .cloudconfigapi import CloudConfigAPI
 from .machineapi import MachineAPI, MachinesAPI
 from .kickstartapi import KickstartAPI
+from .preseedapi import PreseedAPI
 
 
 BODIL_PORT = int(os.environ.get('BODIL_PORT', 5000))
@@ -34,3 +35,4 @@ api.add_resource(MachineAPI, '/api/v1/machine/<string:mac>', endpoint='machine')
 api.add_resource(MachinesAPI, '/api/v1/machine')
 
 api.add_resource(KickstartAPI, '/api/v1/kickstart/<string:mac>')
+api.add_resource(PreseedAPI, '/api/v1/preseed/<string:mac>')
