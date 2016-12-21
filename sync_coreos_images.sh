@@ -6,7 +6,7 @@ syncit() {
   channel=$1
   version=${2:-current}
 
-  wget --cut-dirs=1 -nH --quiet -A coreos_production_image*,coreos_production_pxe* -m http://${channel}.release.core-os.net/amd64-usr/${version}
+  wget --cut-dirs=1 -nH --quiet -A coreos_production_image*,coreos_production_pxe*,version.txt* -m http://${channel}.release.core-os.net/amd64-usr/${version}
 }
 
 cd $(dirname $0)
