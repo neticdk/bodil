@@ -4,7 +4,7 @@ from flask.ext.restful import Resource
 import bodil
 from .machine import get_machine
 from .util import (abort_if_invalid_mac_address, plaintext_response,
-                  bits_to_quads)
+                  cidr2ipinfo)
 
 
 class CloudConfigAPI(Resource):
@@ -22,19 +22,18 @@ class CloudConfigAPI(Resource):
             ntp = ''
         ntp = ntp.split(',')
 
-        ip_addr = None
-        ip_prefix = None
-        ip_netmask = None
-        ip_cidr = getattr(machine, 'ip', None)
-        if ip_cidr:
-            ip_addr, ip_prefix = (ip_cidr.split('/') + [None])[:2]
-            ip_netmask = bits_to_quads(int(ip_prefix))
+        nics = [cidr2ipinfo(nic) for nic in getattr(machine, 'nics', [])]
 
-        template_fields = dict(base_url=bodil.BODIL_URL, ip=machine.ip,
-			       ip_addr=ip_addr, ip_prefix=ip_prefix,
-                               ip_netmask=ip_netmask,
-                               gw=machine.gw, dns=dns, ntp=ntp,
-                               name=machine.name, sshkeys=machine.sshkeys,
+        try:
+            nics[machine.default_gw_idx]['gw'] = machine.default_gw
+        except IndexError:
+            pass
+
+        template_fields = dict(base_url=bodil.BODIL_URL, nics=nics,
+			       default_gw=machine.default_gw,
+			       default_gw_idx=machine.default_gw_idx,
+                               dns=dns, ntp=ntp, name=machine.name,
+			       sshkeys=machine.sshkeys,
                                coreos_etcd_token=machine.coreos_etcd_token,
                                coreos_etcd_enabled=machine.coreos_etcd_enabled,
                                coreos_etcd_role=machine.coreos_etcd_role)

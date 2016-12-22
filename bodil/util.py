@@ -58,3 +58,27 @@ def bits_to_quads(mask):
         bits |= (1 << i)
     return "%d.%d.%d.%d" % ((bits & 0xff000000) >> 24, (bits & 0xff0000) >> 16, (bits & 0xff00) >> 8 , (bits & 0xff))
 
+def cidr2ipinfo(nic):
+    """Converts a cidr-formatted nic dict to ip info.
+ 
+    Args:
+        nic (dict): dict with an 'ip' element formatted as a cidr string
+ 
+    Returns:
+        dict: with elements: ip, addr, prefix, netmask
+ 
+    Examples:
+        >>> cidr2ipinfo({"ip": "10.0.0.1/24"})
+        {"ip": "10.0.0.1/24", "addr": "10.0.0.1", "prefix": "24",
+         "netmask": "255.255.255.0"}
+    """
+    cidr = nic.get('ip')
+    if cidr is None:
+        raise KeyError
+
+    if '/' not in cidr:
+        raise ValueError
+
+    nic['addr'], nic['prefix'] = (cidr.split('/') + [None])[:2]
+    nic['netmask'] = bits_to_quads(int(nic['prefix']))
+    return nic

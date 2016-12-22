@@ -6,11 +6,6 @@ from .util import abort_if_invalid_mac_address
 from .machine import get_machine
 from .machine import Machine, Machines, MissingMachineField
 
-required_fields = ['mac', 'name', 'profile', 'ip', 'gw', 'dns']
-optional_fields = ['coreos_etcd_token', 'repo_url', 'ntp']
-other_fields = ['coreos_channel', 'coreos_version', 'coreos_etcd_enabled',
-                'coreos_etcd_role', 'state', '_hack', 'meta', 'sshkeys']
-all_fields = required_fields+optional_fields+other_fields
 
 meta_fields = {
     'git_ref': fields.String,
@@ -20,15 +15,23 @@ meta_fields = {
 
 machines_fields = {
     'mac': fields.String,
-    'href': fields.Url('machine')
+    'href': fields.Url('machine'),
+}
+
+nic_fields = {
+    'mac': fields.String,
+    'ip': fields.String,
+    'vlan': fields.String,
+    'pcislot': fields.Integer,
 }
 
 machine_fields = {
     'name': fields.String,
     'mac': fields.String,
     'profile': fields.String,
-    'ip': fields.String,
-    'gw': fields.String,
+    'nics': fields.List(fields.Nested(nic_fields)),
+    'default_gw': fields.String,
+    'default_gw_idx': fields.Integer,
     'dns': fields.String,
     'ntp': fields.String,
     'coreos_channel': fields.String,
@@ -43,21 +46,25 @@ machine_fields = {
     'meta': fields.Nested(meta_fields)
 }
 
-
 class MachinesAPI(Resource):
     def __init__(self):
         self.reqparse = reqparse.RequestParser()
-        for f in required_fields:
-            self.reqparse.add_argument(f, type=str, required=True)
-        for f in optional_fields:
-            self.reqparse.add_argument(f, type=str, required=False)
+        self.reqparse.add_argument('mac', type=str, required=True)
+        self.reqparse.add_argument('name', type=str, required=True)
+        self.reqparse.add_argument('profile', type=str, required=True)
+
+        self.reqparse.add_argument('nics', type=list, default=[], location='json')
+        self.reqparse.add_argument('default_gw', type=str)
+        self.reqparse.add_argument('default_gw_idx', type=int, default=0)
+        self.reqparse.add_argument('dns', type=str)
+        self.reqparse.add_argument('ntp', type=str)
+        self.reqparse.add_argument('repo_url', type=str)
         self.reqparse.add_argument('sshkeys', type=list, default=[], location='json')
         self.reqparse.add_argument('coreos_etcd_enabled', type=bool, default=False)
         self.reqparse.add_argument('coreos_etcd_role', type=str, default='member')
         self.reqparse.add_argument('coreos_channel', type=str, default='stable')
         self.reqparse.add_argument('coreos_version', type=str, default='current')
-        self.reqparse.add_argument('state', type=str,
-                                   default='READY-FOR-DEPLOYMENT')
+        self.reqparse.add_argument('state', type=str, default='READY-FOR-DEPLOYMENT')
         self.reqparse.add_argument('_hack', type=str, default='')
         self.reqparse.add_argument('meta', type=dict, default={})
         super(MachinesAPI, self).__init__()
@@ -84,19 +91,25 @@ class MachinesAPI(Resource):
 class MachineAPI(Resource):
     def __init__(self):
         self.reqparse = reqparse.RequestParser()
-        for f in required_fields:
-            self.reqparse.add_argument(f, type=str, store_missing=False)
-        for f in optional_fields:
-            self.reqparse.add_argument(f, type=str, store_missing=False)
-        self.reqparse.add_argument('sshkeys', type=list, default=[], location='json', store_missing=False)
-        self.reqparse.add_argument('coreos_etcd_enabled', type=bool, default=False, store_missing=False)
-        self.reqparse.add_argument('coreos_etcd_role', type=str, default='member', store_missing=False)
+        self.reqparse.add_argument('mac', type=str, store_missing=False)
+        self.reqparse.add_argument('name', type=str, store_missing=False)
+        self.reqparse.add_argument('profile', type=str, store_missing=False)
+
+        self.reqparse.add_argument('nics', type=list, default=[], location='json', store_missing=False)
+        self.reqparse.add_argument('default_gw', type=str, store_missing=False)
+        self.reqparse.add_argument('default_gw_idx', type=int, store_missing=False)
+        self.reqparse.add_argument('dns', type=str, store_missing=False)
+        self.reqparse.add_argument('ntp', type=str, store_missing=False)
+        self.reqparse.add_argument('repo_url', type=str, store_missing=False)
+        self.reqparse.add_argument('sshkeys', type=list, location='json', store_missing=False)
+        self.reqparse.add_argument('coreos_etcd_enabled', type=bool, store_missing=False)
+        self.reqparse.add_argument('coreos_etcd_role', type=str, store_missing=False)
         self.reqparse.add_argument('coreos_channel', type=str, store_missing=False)
         self.reqparse.add_argument('coreos_version', type=str, store_missing=False)
         self.reqparse.add_argument('state', type=str, store_missing=False)
+        self.reqparse.add_argument('_hack', type=str, store_missing=False)
         self.reqparse.add_argument('meta', type=dict, store_missing=False)
-        #for f in all_fields:
-        #    self.reqparse.add_argument(f, type=str, store_missing=False)
+
         super(MachineAPI, self).__init__()
 
     @marshal_with(machine_fields)

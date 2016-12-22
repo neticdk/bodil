@@ -20,11 +20,12 @@ class Machine(object):
         self.mac = kwargs.pop('mac')
         self.name = kwargs.pop('name', None)
         self.profile = kwargs.pop('profile', None)
-        self.ip = kwargs.pop('ip', None)
-        self.gw = kwargs.pop('gw', None)
+        self.nics = kwargs.pop('nics', [])
+        self.default_gw = kwargs.pop('default_gw', None)
+        self.default_gw_idx = kwargs.pop('default_gw_idx', 0)
         self.dns = kwargs.pop('dns', None)
         self.ntp = kwargs.pop('ntp', None)
-        self.sshkeys = kwargs.pop('sshkeys', None)
+        self.sshkeys = kwargs.pop('sshkeys', [])
         self.coreos_channel = kwargs.pop('coreos_channel', None)
         self.coreos_version = kwargs.pop('coreos_version', None)
         self.coreos_etcd_enabled = kwargs.pop('coreos_etcd_enabled', None)
@@ -40,11 +41,12 @@ class Machine(object):
                 data = json.load(infile)
                 self.name = data.get('name')
                 self.profile = data.get('profile')
-                self.ip = data.get('ip', None)
-                self.gw = data.get('gw', None)
+                self.nics = data.get('nics', [])
+                self.default_gw = data.get('default_gw', None)
+                self.default_gw_idx = data.get('default_gw_idx', None)
                 self.dns = data.get('dns', None)
                 self.ntp = data.get('ntp', None)
-                self.sshkeys = data.get('sshkeys', None)
+                self.sshkeys = data.get('sshkeys', [])
                 self.coreos_channel = data.get('coreos_channel', None)
                 self.coreos_version = data.get('coreos_version', None)
                 self.coreos_etcd_enabled = data.get('coreos_etcd_enabled', None)
@@ -60,7 +62,6 @@ class Machine(object):
 
     def validate(self):
         for f in ['name', 'profile']:
-            # , 'ip', 'gw', 'dns', 'state']:
             if getattr(self, f) is None:
                 raise MissingMachineField("{} must not be null".format(f))
 
@@ -71,8 +72,9 @@ class Machine(object):
                 data = {
                     'name': self.name,
                     'profile': self.profile,
-                    'ip': self.ip,
-                    'gw': self.gw,
+                    'nics': self.nics,
+                    'default_gw': self.default_gw,
+                    'default_gw_idx': self.default_gw_idx,
                     'dns': self.dns,
                     'ntp': self.ntp,
                     'sshkeys': self.sshkeys,
