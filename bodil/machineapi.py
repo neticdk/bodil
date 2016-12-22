@@ -7,8 +7,9 @@ from .machine import get_machine
 from .machine import Machine, Machines, MissingMachineField
 
 required_fields = ['mac', 'name', 'profile', 'ip', 'gw', 'dns']
-optional_fields = ['etcd_token', 'sshkey', 'repo_url']
-other_fields = ['coreos_channel', 'coreos_version', 'state', '_hack', 'meta']
+optional_fields = ['coreos_etcd_token', 'repo_url', 'ntp']
+other_fields = ['coreos_channel', 'coreos_version', 'coreos_etcd_enabled',
+                'coreos_etcd_role', 'state', '_hack', 'meta', 'sshkeys']
 all_fields = required_fields+optional_fields+other_fields
 
 meta_fields = {
@@ -29,10 +30,13 @@ machine_fields = {
     'ip': fields.String,
     'gw': fields.String,
     'dns': fields.String,
-    'etcd_token': fields.String,
+    'ntp': fields.String,
     'coreos_channel': fields.String,
     'coreos_version': fields.String,
-    'sshkey': fields.String,
+    'coreos_etcd_token': fields.String,
+    'coreos_etcd_enabled': fields.Boolean,
+    'coreos_etcd_role': fields.String,
+    'sshkeys': fields.List(fields.String),
     'state': fields.String,
     'repo_url': fields.String,
     '_hack': fields.String,
@@ -47,9 +51,11 @@ class MachinesAPI(Resource):
             self.reqparse.add_argument(f, type=str, required=True)
         for f in optional_fields:
             self.reqparse.add_argument(f, type=str, required=False)
+        self.reqparse.add_argument('sshkeys', type=list, default=[], location='json')
+        self.reqparse.add_argument('coreos_etcd_enabled', type=bool, default=False)
+        self.reqparse.add_argument('coreos_etcd_role', type=str, default='member')
         self.reqparse.add_argument('coreos_channel', type=str, default='stable')
-        self.reqparse.add_argument('coreos_version', type=str,
-                                   default='current')
+        self.reqparse.add_argument('coreos_version', type=str, default='current')
         self.reqparse.add_argument('state', type=str,
                                    default='READY-FOR-DEPLOYMENT')
         self.reqparse.add_argument('_hack', type=str, default='')
@@ -82,6 +88,9 @@ class MachineAPI(Resource):
             self.reqparse.add_argument(f, type=str, store_missing=False)
         for f in optional_fields:
             self.reqparse.add_argument(f, type=str, store_missing=False)
+        self.reqparse.add_argument('sshkeys', type=list, default=[], location='json', store_missing=False)
+        self.reqparse.add_argument('coreos_etcd_enabled', type=bool, default=False, store_missing=False)
+        self.reqparse.add_argument('coreos_etcd_role', type=str, default='member', store_missing=False)
         self.reqparse.add_argument('coreos_channel', type=str, store_missing=False)
         self.reqparse.add_argument('coreos_version', type=str, store_missing=False)
         self.reqparse.add_argument('state', type=str, store_missing=False)

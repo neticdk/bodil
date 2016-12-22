@@ -23,10 +23,13 @@ class Machine(object):
         self.ip = kwargs.pop('ip', None)
         self.gw = kwargs.pop('gw', None)
         self.dns = kwargs.pop('dns', None)
-        self.sshkey = kwargs.pop('sshkey', None)
-        self.etcd_token = kwargs.pop('etcd_token', None)
+        self.ntp = kwargs.pop('ntp', None)
+        self.sshkeys = kwargs.pop('sshkeys', None)
         self.coreos_channel = kwargs.pop('coreos_channel', None)
         self.coreos_version = kwargs.pop('coreos_version', None)
+        self.coreos_etcd_enabled = kwargs.pop('coreos_etcd_enabled', None)
+        self.coreos_etcd_token = kwargs.pop('coreos_etcd_token', None)
+        self.coreos_etcd_role = kwargs.pop('coreos_etcd_role', None)
         self.state = kwargs.pop('state', None)
         self.repo_url = kwargs.pop('repo_url', None)
         self.meta = kwargs.pop('meta', {})
@@ -40,10 +43,13 @@ class Machine(object):
                 self.ip = data.get('ip', None)
                 self.gw = data.get('gw', None)
                 self.dns = data.get('dns', None)
-                self.sshkey = data.get('sshkey', None)
-                self.etcd_token = data.get('etcd_token', None)
+                self.ntp = data.get('ntp', None)
+                self.sshkeys = data.get('sshkeys', None)
                 self.coreos_channel = data.get('coreos_channel', None)
                 self.coreos_version = data.get('coreos_version', None)
+                self.coreos_etcd_enabled = data.get('coreos_etcd_enabled', None)
+                self.coreos_etcd_token = data.get('coreos_etcd_token', None)
+                self.coreos_etcd_role = data.get('coreos_etcd_role', None)
                 self.state = data.get('state', None)
                 self.repo_url = data.get('repo_url', None)
                 self.meta = data.get('meta', {})
@@ -68,10 +74,13 @@ class Machine(object):
                     'ip': self.ip,
                     'gw': self.gw,
                     'dns': self.dns,
-                    'sshkey': self.sshkey,
-                    'etcd_token': self.etcd_token,
+                    'ntp': self.ntp,
+                    'sshkeys': self.sshkeys,
                     'coreos_channel': self.coreos_channel,
                     'coreos_version': self.coreos_version,
+                    'coreos_etcd_enabled': self.coreos_etcd_enabled,
+                    'coreos_etcd_token': self.coreos_etcd_token,
+                    'coreos_etcd_role': self.coreos_etcd_role,
                     'state': self.state,
                     'repo_url': self.repo_url,
                     'meta': self.meta
