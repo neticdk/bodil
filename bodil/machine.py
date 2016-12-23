@@ -87,6 +87,9 @@ class Machine(object):
                     'repo_url': self.repo_url,
                     'meta': self.meta
                 }
+                # Don't set default gw index if not default gw is set
+                if self.default_gw is None:
+                    data['default_gw_idx'] = None
                 json.dump(data, outfile)
         except IOError as e:
             if e.errno == errno.ENOENT:
