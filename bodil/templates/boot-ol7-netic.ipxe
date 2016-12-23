@@ -1,6 +1,0 @@
-#!ipxe
-set base-url {{ base_url }}
-set repo-url {{ repo_url }}
-kernel ${repo-url}/pxeboot/vmlinuz
-initrd ${repo-url}/pxeboot/initrd.img
-boot vmlinuz initrd=initrd.img ksdevice=bootif ip=dhcp kssendmac ks=${base-url}/api/v1/kickstart/${net0/mac}
