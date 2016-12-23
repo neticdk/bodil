@@ -16,6 +16,7 @@ class CloudConfigAPI(Resource):
         if dns is None:
             dns = ''
         dns = dns.split(',')
+        ip_domain = machine.name.partition('.')[2]
 
         ntp = getattr(machine, 'ntp', '')
         if ntp is None:
@@ -29,14 +30,22 @@ class CloudConfigAPI(Resource):
         except IndexError:
             pass
 
-        template_fields = dict(base_url=bodil.BODIL_URL, nics=nics,
-			       default_gw=machine.default_gw,
-			       default_gw_idx=machine.default_gw_idx,
-                               dns=dns, ntp=ntp, name=machine.name,
-			       sshkeys=machine.sshkeys,
-                               coreos_etcd_token=machine.coreos_etcd_token,
-                               coreos_etcd_enabled=machine.coreos_etcd_enabled,
-                               coreos_etcd_role=machine.coreos_etcd_role)
+        template_fields = dict(
+            base_url=bodil.BODIL_URL,
+	    name=machine.name,
+            mac=mac,
+	    nics=nics,
+	    dns=dns,
+	    ntp=ntp,
+	    default_gw=machine.default_gw,
+	    default_gw_idx=machine.default_gw_idx,
+            ip_domain=ip_domain,
+	    sshkeys=machine.sshkeys,
+            meta=machine.meta,
+	    coreos_etcd_token=machine.coreos_etcd_token,
+	    coreos_etcd_enabled=machine.coreos_etcd_enabled,
+	    coreos_etcd_role=machine.coreos_etcd_role
+        )
 
         template = 'cloud-config-{}.yml'.format(machine.profile)
         res = plaintext_response(render_template(template, **template_fields))

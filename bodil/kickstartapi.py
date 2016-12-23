@@ -12,37 +12,39 @@ class KickstartAPI(Resource):
         abort_if_invalid_mac_address(mac)
         machine = get_machine(mac)
 
-        template = 'kickstart-{}'.format(machine.profile)
-
-        ip_addr = None
-        ip_prefix = None
-        ip_netmask = None
-        ip_gw = getattr(machine, 'gw', None)
-        if ip_gw == '':
-          ip_gw = None
-
-        ip_cidr = getattr(machine, 'ip', None)
-        if ip_cidr != '' and ip_cidr is not None:
-            ip_addr, ip_prefix = (ip_cidr.split('/') + [None])[:2]
-            ip_netmask = bits_to_quads(int(ip_prefix))
-
         dns = getattr(machine, 'dns', '')
         if dns is None:
             dns = ''
-        ip_dns = dns.split(',')
+        dns = dns.split(',')
         ip_domain = machine.name.partition('.')[2]
 
-        res = plaintext_response(render_template(
-            template,
-            name=machine.name,
+        ntp = getattr(machine, 'ntp', '')
+        if ntp is None:
+            ntp = ''
+        ntp = ntp.split(',')
+
+        nics = [cidr2ipinfo(nic) for nic in getattr(machine, 'nics', [])]
+
+        try:
+            nics[machine.default_gw_idx]['gw'] = machine.default_gw
+        except IndexError:
+            pass
+
+        template_fields = dict(
             base_url=bodil.BODIL_URL,
-	    ip_addr=ip_addr,
-            ip_prefix=ip_prefix,
-            ip_netmask=ip_netmask,
-            ip_gw=ip_gw,
-	    ip_dns=ip_dns,
+            name=machine.name,
+            mac=mac,
+	    nics=nics,
+	    dns=dns,
+            ntp=ntp,
+            default_gw=machine.default_gw,
+	    default_gw_idx=machine.default_gw_idx,
             ip_domain=ip_domain,
-            repo_url=machine.repo_url,
+	    sshkeys=machine.sshkeys,
             meta=machine.meta,
-            mac=mac))
+            repo_url=machine.repo_url
+        )
+
+        template = 'kickstart-{}'.format(machine.profile)
+        res = plaintext_response(render_template(template, **template_fields))
         return res
